@@ -1,0 +1,77 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class SocialNetwork {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "password";
+
+    private static Connection conn;
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+            System.out.println("Welcome to the Social Network!");
+
+            while (true) {
+                System.out.print("> ");
+                String input = scanner.nextLine();
+                String[] tokens = input.split(" ");
+                String command = tokens[0];
+
+                switch (command) {
+                    case "signup":
+                        String username = tokens[1];
+                        String password = tokens[2];
+                        signup(username, password);
+                        break;
+                    case "login":
+                        String username2 = tokens[1];
+                        String password2 = tokens[2];
+                        login(username2, password2);
+                        break;
+                    case "exit":
+                        System.out.println("Goodbye!");
+                        System.exit(0);
+                    default:
+                        System.out.println("Invalid command!");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static void signup(String username, String password) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)");
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+        stmt.executeUpdate();
+        System.out.println("Signup successful!");
+    }
+
+    private static void login(String username, String password) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?");
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            int userId = rs.getInt("user_id");
+            System.out.println("Login successful!");
+            System.out.println("Your user ID is " + userId);
+        } else {
+            System.out.println("Invalid username or password!");
+        }
+    }
+}
